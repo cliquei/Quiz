@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import AssessmentIntro from "@/components/AssessmentIntro";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { MadeWithDyad } from "@/components/made-with-dyad";
+import { RotateCcw } from "lucide-react";
 
 const questions = [
   // Bloco 1 – Formação e Conhecimento Técnico
@@ -64,6 +66,7 @@ const Index = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<number[]>(Array(questions.length).fill(0));
   const [showResult, setShowResult] = useState(false);
+  const [showIntro, setShowIntro] = useState(true);
   const [result, setResult] = useState<{ score: number; level: string; message: string } | null>(null);
 
   const handleAnswer = (value: number) => {
@@ -111,6 +114,15 @@ const Index = () => {
     setResult(null);
   };
 
+  const startQuiz = () => {
+    setShowIntro(false);
+  };
+
+  const restartQuiz = () => {
+    resetQuiz();
+    setShowIntro(true);
+  };
+
   const getCurrentBlock = () => {
     return Math.floor(currentQuestion / 5);
   };
@@ -123,23 +135,27 @@ const Index = () => {
     return parseFloat(score.toFixed(1));
   };
 
+  if (showIntro) {
+    return <AssessmentIntro onStart={startQuiz} />;
+  }
+
   if (showResult && result) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-amber-50 to-blue-50 py-12 px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4">
-              Teste seu Conhecimento
+          <div className="text-center mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-2">
+              Seu Resultado
             </h1>
-            <p className="text-xl text-gray-700">
-              Descubra sua nota em gestão de clínicas
+            <p className="text-lg text-gray-700">
+              Teste seu Conhecimento em Gestão de Clínicas
             </p>
           </div>
 
           <Card className="mb-8 border-2 border-blue-300 shadow-lg">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl md:text-3xl text-blue-900">
-                Seu Resultado
+                Parabéns por completar a avaliação!
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center">
@@ -165,14 +181,48 @@ const Index = () => {
                 ))}
               </div>
               
-              <Button 
-                onClick={resetQuiz}
-                className="bg-blue-900 hover:bg-blue-800 text-white text-lg py-6 px-8"
-              >
-                Refazer Teste
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button 
+                  onClick={resetQuiz}
+                  className="bg-blue-900 hover:bg-blue-800 text-white text-lg py-6 px-8"
+                >
+                  Refazer Teste
+                </Button>
+                <Button 
+                  onClick={restartQuiz}
+                  variant="outline"
+                  className="border-blue-900 text-blue-900 hover:bg-blue-50 text-lg py-6 px-8"
+                >
+                  <RotateCcw className="mr-2 h-5 w-5" /> Voltar ao Início
+                </Button>
+              </div>
             </CardContent>
           </Card>
+          
+          <div className="bg-white rounded-lg p-6 border border-blue-200 shadow-sm mb-8">
+            <h3 className="text-xl font-bold text-blue-900 mb-4">Próximos Passos</h3>
+            <p className="text-gray-700 mb-4">
+              Com base no seu resultado, identificamos áreas onde você pode focar para evoluir profissionalmente:
+            </p>
+            <ul className="list-disc pl-5 text-gray-700 space-y-2">
+              {blockTitles.map((title, index) => {
+                const score = getBlockScore(index);
+                if (score < 3.5) {
+                  return (
+                    <li key={index}>
+                      <span className="font-bold">{title}</span> - Pontuação: {score}/5
+                    </li>
+                  );
+                }
+                return null;
+              })}
+            </ul>
+            {blockTitles.every((_, index) => getBlockScore(index) >= 3.5) && (
+              <p className="text-green-600 font-bold mt-4">
+                Parabéns! Você está muito bem posicionado em todas as áreas. Continue se atualizando para manter esse nível de excelência.
+              </p>
+            )}
+          </div>
           
           <div className="text-center">
             <h3 className="text-2xl font-bold text-blue-900 mb-4">Com este teste descubra as áreas onde precisa melhorar para alcançar novos patamares</h3>
@@ -190,21 +240,18 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-blue-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-2">
             Teste seu Conhecimento
           </h1>
-          <p className="text-xl text-gray-700">
-            Descubra sua nota em gestão de clínicas
-          </p>
-          <p className="text-lg text-gray-600 mt-4">
-            Com este teste descubra as áreas onde precisa melhorar para alcançar novos patamares
+          <p className="text-lg text-gray-700">
+            Avaliação em Gestão de Clínicas Odontológicas
           </p>
         </div>
 
         <Card className={`${blockColors[getCurrentBlock()]} border-2 border-white shadow-lg mb-8`}>
           <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <Badge variant="secondary" className="text-lg py-2 px-4">
                 Pergunta {currentQuestion + 1} de {questions.length}
               </Badge>
@@ -252,6 +299,16 @@ const Index = () => {
               <p className="text-xs">{title}</p>
             </div>
           ))}
+        </div>
+        
+        <div className="text-center">
+          <Button 
+            onClick={restartQuiz}
+            variant="outline"
+            className="border-blue-900 text-blue-900 hover:bg-blue-50"
+          >
+            <RotateCcw className="mr-2 h-4 w-4" /> Voltar ao Início
+          </Button>
         </div>
         
         <MadeWithDyad />
