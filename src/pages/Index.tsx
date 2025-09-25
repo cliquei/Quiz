@@ -203,11 +203,11 @@ const Index = () => {
           </AnimatedCard>
         </div>
 
-        {/* Bloco 4: Avaliações Disponíveis - CORRIGIDO PARA MELHOR LEGIBILIDADE */}
-        <AnimatedCard className="p-6 bg-gray-900 text-white" delay={0.4}>
+        {/* Bloco 4: Avaliações Disponíveis - MELHOR CONTRASTE */}
+        <AnimatedCard className="p-6 bg-gray-950 text-white" delay={0.4}>
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-white">
-              <Users className="w-6 h-6 text-blue-300" />
+              <Users className="w-6 h-6 text-blue-400" />
               Avaliações Disponíveis
             </CardTitle>
             <CardDescription className="text-gray-300">
@@ -219,24 +219,24 @@ const Index = () => {
               {assessments.map((assessment, index) => (
                 <div key={assessment.id} className={`p-4 rounded-lg border ${
                   assessment.completed 
-                    ? 'bg-green-900/20 border-green-600/30' 
-                    : 'bg-gray-800/50 border-gray-600/30'
+                    ? 'bg-green-950/40 border-green-500/50' 
+                    : 'bg-gray-800/80 border-gray-500/50'
                 }`}>
                   <div className="flex items-start justify-between mb-3">
                     <h3 className="font-semibold text-white">{assessment.title}</h3>
                     <Badge variant={assessment.completed ? "outline" : "secondary"} className={
                       assessment.completed 
-                        ? 'bg-green-600/20 text-green-300 border-green-500/30' 
-                        : 'bg-blue-600/20 text-blue-300 border-blue-500/30'
+                        ? 'bg-green-500/20 text-green-200 border-green-400/50' 
+                        : 'bg-blue-500/20 text-blue-200 border-blue-400/50'
                     }>
                       {assessment.difficulty}
                     </Badge>
                   </div>
-                  <p className="text-gray-300 text-sm mb-3">{assessment.description}</p>
+                  <p className="text-gray-200 text-sm mb-3">{assessment.description}</p>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-yellow-400" />
-                      <span className="text-yellow-300 text-sm font-medium">
+                      <Star className="w-4 h-4 text-yellow-300" />
+                      <span className="text-yellow-200 text-sm font-medium">
                         +{assessment.xpReward} XP
                       </span>
                     </div>
@@ -245,7 +245,7 @@ const Index = () => {
                       variant={assessment.completed ? "outline" : "default"}
                       className={
                         assessment.completed 
-                          ? 'bg-transparent text-green-300 border-green-400 hover:bg-green-800/30' 
+                          ? 'bg-transparent text-green-200 border-green-300 hover:bg-green-900/40' 
                           : 'bg-blue-600 hover:bg-blue-700'
                       }
                     >
