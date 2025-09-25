@@ -33,7 +33,7 @@ const questions = [
   
   // Bloco 4 – Relacionamento e Humanização
   "Você consegue se comunicar de forma clara e empática com os pacientes?",
-  "Consegue transmitir confianza e segurança durante a consulta/tratamento?",
+  "Consegue transmitir confiança e segurança durante a consulta/tratamento?",
   "Dedica tempo para ouvir as queixas e expectativas do paciente antes de iniciar o atendimento?",
   "Está preparado para lidar com pacientes ansiosos ou com medo de tratamento odontológico?",
   "Recebe feedbacks positivos dos pacientes em relação ao atendimento e à experiência no consultório?",
@@ -50,7 +50,7 @@ const blockColors = [
   "bg-blue-900",    // Azul marinho
   "bg-blue-300",    // Azul piscina
   "bg-gray-400",    // Cinza
-  "bg-amber-50",    // Creme
+  "bg-amber-800",   // Marrom âmbar (mais escuro para melhor leitura)
   "bg-blue-800"     // Azul marinho escuro
 ];
 
