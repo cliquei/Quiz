@@ -6,25 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Trophy, Star, Target, BarChart3, Users, Award } from "lucide-react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import AnimatedCard from "@/components/AnimatedCard";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
+  const { toast } = useToast();
   const [currentLevel, setCurrentLevel] = useState(1);
   const [xp, setXp] = useState(250);
   const [completedAssessments, setCompletedAssessments] = useState(3);
-
-  const levels = [
-    { xpRequired: 0, title: "Iniciante" },
-    { xpRequired: 100, title: "Aprendiz" },
-    { xpRequired: 300, title: "Competente" },
-    { xpRequired: 600, title: "Proficiente" },
-    { xpRequired: 1000, title: "Especialista" }
-  ];
-
-  const currentLevelData = levels[currentLevel];
-  const nextLevelData = levels[currentLevel + 1];
-  const progress = ((xp - currentLevelData.xpRequired) / (nextLevelData.xpRequired - currentLevelData.xpRequired)) * 100;
-
-  const assessments = [
+  const [assessments, setAssessments] = useState([
     {
       id: 1,
       title: "Avaliação de Liderança",
@@ -57,7 +46,19 @@ const Index = () => {
       xpReward: 60,
       completed: false
     }
+  ]);
+
+  const levels = [
+    { xpRequired: 0, title: "Iniciante" },
+    { xpRequired: 100, title: "Aprendiz" },
+    { xpRequired: 300, title: "Competente" },
+    { xpRequired: 600, title: "Proficiente" },
+    { xpRequired: 1000, title: "Especialista" }
   ];
+
+  const currentLevelData = levels[currentLevel];
+  const nextLevelData = levels[currentLevel + 1];
+  const progress = ((xp - currentLevelData.xpRequired) / (nextLevelData.xpRequired - currentLevelData.xpRequired)) * 100;
 
   const leaderboard = [
     { position: 1, name: "João Silva", xp: 1200, level: "Especialista" },
@@ -73,6 +74,41 @@ const Index = () => {
     { title: "Top 3", description: "Entre no top 3 do ranking", unlocked: false },
     { title: "Nível Máximo", description: "Alcance o nível Especialista", unlocked: false }
   ];
+
+  const handleStartAssessment = (id: number) => {
+    const assessment = assessments.find(a => a.id === id);
+    if (assessment) {
+      toast({
+        title: "Avaliação iniciada!",
+        description: `Você começou a avaliação: ${assessment.title}`,
+      });
+      
+      // Aqui você pode adicionar a lógica para redirecionar para a página da avaliação
+      // Por exemplo: navigate(`/assessment/${id}`);
+      console.log(`Iniciando avaliação ${id}`);
+    }
+  };
+
+  const handleCompleteAssessment = (id: number) => {
+    setAssessments(prev => 
+      prev.map(assessment => 
+        assessment.id === id 
+          ? { ...assessment, completed: true } 
+          : assessment
+      )
+    );
+    
+    const assessment = assessments.find(a => a.id === id);
+    if (assessment) {
+      setXp(prev => prev + assessment.xpReward);
+      setCompletedAssessments(prev => prev + 1);
+      
+      toast({
+        title: "Avaliação concluída!",
+        description: `Você ganhou ${assessment.xpReward} XP!`,
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -243,6 +279,11 @@ const Index = () => {
                     <Button 
                       size="sm" 
                       variant={assessment.completed ? "outline" : "default"}
+                      onClick={() => 
+                        assessment.completed 
+                          ? handleCompleteAssessment(assessment.id) 
+                          : handleStartAssessment(assessment.id)
+                      }
                       className={
                         assessment.completed 
                           ? 'bg-transparent text-green-200 border-green-300 hover:bg-green-900/40' 
