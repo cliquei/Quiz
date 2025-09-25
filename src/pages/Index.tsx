@@ -1,17 +1,265 @@
-// Update this page (the content is just a fallback if you fail to update the page)
-
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Trophy, Star, Target, BarChart3, Users, Award } from "lucide-react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
+import AnimatedCard from "@/components/AnimatedCard";
 
 const Index = () => {
+  const [currentLevel, setCurrentLevel] = useState(1);
+  const [xp, setXp] = useState(250);
+  const [completedAssessments, setCompletedAssessments] = useState(3);
+
+  const levels = [
+    { xpRequired: 0, title: "Iniciante" },
+    { xpRequired: 100, title: "Aprendiz" },
+    { xpRequired: 300, title: "Competente" },
+    { xpRequired: 600, title: "Proficiente" },
+    { xpRequired: 1000, title: "Especialista" }
+  ];
+
+  const currentLevelData = levels[currentLevel];
+  const nextLevelData = levels[currentLevel + 1];
+  const progress = ((xp - currentLevelData.xpRequired) / (nextLevelData.xpRequired - currentLevelData.xpRequired)) * 100;
+
+  const assessments = [
+    {
+      id: 1,
+      title: "Avaliação de Liderança",
+      description: "Teste suas habilidades de gestão de equipe",
+      difficulty: "Médio",
+      xpReward: 50,
+      completed: true
+    },
+    {
+      id: 2,
+      title: "Teste de Comunicação",
+      description: "Avalie suas habilidades de comunicação",
+      difficulty: "Fácil",
+      xpReward: 30,
+      completed: true
+    },
+    {
+      id: 3,
+      title: "Desafio de Resolução de Problemas",
+      description: "Problemas complexos para testar seu raciocínio",
+      difficulty: "Difícil",
+      xpReward: 80,
+      completed: true
+    },
+    {
+      id: 4,
+      title: "Avaliação de Trabalho em Equipe",
+      description: "Como você se sai em ambientes colaborativos",
+      difficulty: "Médio",
+      xpReward: 60,
+      completed: false
+    }
+  ];
+
+  const leaderboard = [
+    { position: 1, name: "João Silva", xp: 1200, level: "Especialista" },
+    { position: 2, name: "Maria Santos", xp: 980, level: "Proficiente" },
+    { position: 3, name: "Pedro Costa", xp: 850, level: "Proficiente" },
+    { position: 4, name: "Ana Oliveira", xp: 720, level: "Competente" },
+    { position: 5, name: "Carlos Lima", xp: 650, level: "Competente" }
+  ];
+
+  const achievements = [
+    { title: "Primeiros Passos", description: "Complete sua primeira avaliação", unlocked: true },
+    { title: "Mestre das Avaliações", description: "Complete 5 avaliações", unlocked: false },
+    { title: "Top 3", description: "Entre no top 3 do ranking", unlocked: false },
+    { title: "Nível Máximo", description: "Alcance o nível Especialista", unlocked: false }
+  ];
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">
-          Start building your amazing project here!
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-800 mb-4">
+            Sistema de Avaliação Gamificado
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Transforme suas avaliações em uma experiência divertida e motivadora com nosso sistema gamificado
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+          {/* Bloco 1: Progresso do Usuário */}
+          <AnimatedCard className="p-6" delay={0.1}>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <Trophy className="w-6 h-6 text-yellow-500" />
+                Seu Progresso
+              </CardTitle>
+              <CardDescription>
+                Nível {currentLevel + 1}: {currentLevelData.title}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">XP: {xp}</span>
+                  <span className="text-sm text-gray-500">
+                    Próximo nível: {nextLevelData.xpRequired} XP
+                  </span>
+                </div>
+                <Progress value={progress} className="h-2" />
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">
+                    <Target className="w-4 h-4 mr-1" />
+                    {completedAssessments} avaliações concluídas
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </AnimatedCard>
+
+          {/* Bloco 2: Ranking */}
+          <AnimatedCard className="p-6" delay={0.2}>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="w-6 h-6 text-blue-500" />
+                Ranking Geral
+              </CardTitle>
+              <CardDescription>
+                Top 5 jogadores da plataforma
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {leaderboard.map((player, index) => (
+                  <div key={player.position} className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
+                        index === 0 ? 'bg-yellow-400' : 
+                        index === 1 ? 'bg-gray-400' : 
+                        index === 2 ? 'bg-amber-600' : 'bg-blue-400'
+                      }`}>
+                        {player.position}
+                      </div>
+                      <div>
+                        <div className="font-medium">{player.name}</div>
+                        <div className="text-sm text-gray-500">{player.level}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold">{player.xp} XP</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </AnimatedCard>
+
+          {/* Bloco 3: Conquistas */}
+          <AnimatedCard className="p-6" delay={0.3}>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <Award className="w-6 h-6 text-purple-500" />
+                Conquistas
+              </CardTitle>
+              <CardDescription>
+                Desbloqueie recompensas ao progredir
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {achievements.map((achievement, index) => (
+                  <div key={index} className={`flex items-center gap-3 p-3 rounded-lg ${
+                    achievement.unlocked 
+                      ? 'bg-green-50 border border-green-200' 
+                      : 'bg-gray-50 border border-gray-200'
+                  }`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      achievement.unlocked 
+                        ? 'bg-green-100 text-green-600' 
+                        : 'bg-gray-100 text-gray-400'
+                    }`}>
+                      <Star className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <div className={`font-medium ${
+                        achievement.unlocked ? 'text-green-800' : 'text-gray-600'
+                      }`}>
+                        {achievement.title}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {achievement.description}
+                      </div>
+                    </div>
+                    {achievement.unlocked && (
+                      <Badge variant="outline" className="bg-green-100 text-green-800">
+                        Conquistado
+                      </Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </AnimatedCard>
+        </div>
+
+        {/* Bloco 4: Avaliações Disponíveis - CORRIGIDO PARA MELHOR LEGIBILIDADE */}
+        <AnimatedCard className="p-6 bg-gray-900 text-white" delay={0.4}>
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Users className="w-6 h-6 text-blue-300" />
+              Avaliações Disponíveis
+            </CardTitle>
+            <CardDescription className="text-gray-300">
+              Escolha sua próxima avaliação e ganhe XP
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {assessments.map((assessment, index) => (
+                <div key={assessment.id} className={`p-4 rounded-lg border ${
+                  assessment.completed 
+                    ? 'bg-green-900/20 border-green-600/30' 
+                    : 'bg-gray-800/50 border-gray-600/30'
+                }`}>
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="font-semibold text-white">{assessment.title}</h3>
+                    <Badge variant={assessment.completed ? "outline" : "secondary"} className={
+                      assessment.completed 
+                        ? 'bg-green-600/20 text-green-300 border-green-500/30' 
+                        : 'bg-blue-600/20 text-blue-300 border-blue-500/30'
+                    }>
+                      {assessment.difficulty}
+                    </Badge>
+                  </div>
+                  <p className="text-gray-300 text-sm mb-3">{assessment.description}</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Star className="w-4 h-4 text-yellow-400" />
+                      <span className="text-yellow-300 text-sm font-medium">
+                        +{assessment.xpReward} XP
+                      </span>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant={assessment.completed ? "outline" : "default"}
+                      className={
+                        assessment.completed 
+                          ? 'bg-transparent text-green-300 border-green-400 hover:bg-green-800/30' 
+                          : 'bg-blue-600 hover:bg-blue-700'
+                      }
+                    >
+                      {assessment.completed ? 'Concluído' : 'Iniciar'}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </AnimatedCard>
+
+        <MadeWithDyad />
       </div>
-      <MadeWithDyad />
     </div>
   );
 };
