@@ -8,6 +8,7 @@ import { Trophy, Star, Target, BarChart3, Users, Award } from "lucide-react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import AnimatedCard from "@/components/AnimatedCard";
 import { useToast } from "@/hooks/use-toast";
+import { generalAssessments } from "@/data/generalAssessments";
 
 const Index = () => {
   const { toast } = useToast();
@@ -16,42 +17,7 @@ const Index = () => {
   const [xp, setXp] = useState(250);
   const [completedAssessments, setCompletedAssessments] = useState(3);
   const [assessments, setAssessments] = useState([
-    {
-      id: 1,
-      title: "Avaliação de Liderança",
-      description: "Teste suas habilidades de gestão de equipe",
-      difficulty: "Médio",
-      xpReward: 50,
-      completed: true,
-      type: "general"
-    },
-    {
-      id: 2,
-      title: "Teste de Comunicação",
-      description: "Avalie suas habilidades de comunicação",
-      difficulty: "Fácil",
-      xpReward: 30,
-      completed: true,
-      type: "general"
-    },
-    {
-      id: 3,
-      title: "Desafio de Resolução de Problemas",
-      description: "Problemas complexos para testar seu raciocínio",
-      difficulty: "Difícil",
-      xpReward: 80,
-      completed: true,
-      type: "general"
-    },
-    {
-      id: 4,
-      title: "Avaliação de Trabalho em Equipe",
-      description: "Como você se sai em ambientes colaborativos",
-      difficulty: "Médio",
-      xpReward: 60,
-      completed: false,
-      type: "general"
-    },
+    ...generalAssessments.map(ga => ({ ...ga, completed: ga.id <= 3, type: "general" })), // Mark first 3 as completed for initial state
     {
       id: 5,
       title: "📋 Avaliação Odontológica Completa",

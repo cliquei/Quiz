@@ -149,7 +149,7 @@ const DentalAssessment = () => {
     // Calcular pontuação por bloco
     assessmentData.blocks.forEach((block, blockIndex) => {
       let blockTotal = 0;
-      const startIndex = blockIndex * 5;
+      const startIndex = blockIndex * 5; // Each block has 5 questions
       
       for (let i = 0; i < 5; i++) {
         const answer = answers[startIndex + i];
@@ -159,12 +159,12 @@ const DentalAssessment = () => {
         }
       }
       
-      const blockAverage = blockTotal / 5;
+      const blockAverage = blockTotal / 5; // Average score for the block
       blockScoresArray.push(blockAverage);
       total += blockTotal;
     });
 
-    const averageScore = total / allQuestions.length;
+    const averageScore = total / allQuestions.length; // Overall average score
     setScore(averageScore);
     setTotalScore(total);
     setBlockScores(blockScoresArray);
@@ -289,7 +289,7 @@ const DentalAssessment = () => {
                       <div className="space-y-3">
                         {improvementAreas.map((suggestion, index) => (
                           <div key={index} className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                            <p className="text-yellow-800">{suggestion}</p>
+                            <p className="text-yellow-800" dangerouslySetInnerHTML={{ __html: suggestion }}></p>
                           </div>
                         ))}
                       </div>
@@ -385,7 +385,7 @@ const DentalAssessment = () => {
   const blockIndex = assessmentData.blocks.findIndex(block => 
     block.questions.includes(allQuestions[currentQuestion])
   );
-  const questionInBlock = currentBlock?.questions.indexOf(allQuestions[currentQuestion]) || 0;
+  // const questionInBlock = currentBlock?.questions.indexOf(allQuestions[currentQuestion]) || 0; // Not used
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
