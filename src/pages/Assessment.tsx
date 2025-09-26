@@ -4,82 +4,162 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, CheckCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle, Award } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Progress } from "@/components/ui/progress";
+import { allAssessments, AssessmentType } from "@/data/assessments";
 
 const Assessment = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [showResults, setShowResults] = useState(false);
+  const [score, setScore] = useState(0);
+  const [totalScore, setTotalScore] = useState(0);
 
-  // Dados simulados da avaliação
-  const assessmentData = {
-    id: 4,
-    title: "Avaliação de Trabalho em Equipe",
-    questions: [
-      {
-        id: 1,
-        question: "Como você reage quando um colega de equipe não está contribuindo adequadamente?",
-        options: [
-          "Confronto a pessoa diretamente",
-          "Falo com o líder da equipe",
-          "Tento entender a situação e oferecer ajuda",
-          "Ignoro e faço o trabalho sozinho"
-        ]
-      },
-      {
-        id: 2,
-        question: "Qual é sua abordagem preferida para resolver conflitos na equipe?",
-        options: [
-          "Evitar o conflito",
-          "Mediar a discussão",
-          "Tomar uma decisão unilateral",
-          "Buscar consenso entre as partes"
-        ]
-      },
-      {
-        id: 3,
-        question: "Como você contribui para o sucesso da equipe?",
-        options: [
-          "Focando apenas nas minhas tarefas",
-          "Compartilhando conhecimento e ajudando outros",
-          "Criticando as ideias dos colegas",
-          "Delegando todo o trabalho para outros"
-        ]
-      }
-    ],
-    xpReward: 60
-  };
+  const assessment: AssessmentType | undefined = allAssessments.find(
+    (a) => a.id === Number(id) && a.type === "general"
+  );
+
+  if (!assessment) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold mb-4">Avaliação Não Encontrada</h1>
+          <p className="text-xl text-gray-600 mb-4">
+            A avaliação que você procura não existe ou não é do tipo geral.
+          </p>
+          <Button onClick={() => navigate("/")} className="bg-blue-600 hover:bg-blue-700">
+            Voltar para Início
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const handleAnswerSelect = (answer: string) => {
-    setAnswers(prev => ({
+    setAnswers((prev) => ({
       ...prev,
-      [currentQuestion]: answer
+      [currentQuestionIndex]: answer,
     }));
   };
 
+  const calculateScore = () => {
+    let total = 0;
+    Object.values(answers).forEach((answer, index) => {
+      const questionOptions = assessment.questions[index].options;
+      const scoreValue = questionOptions.indexOf(answer) + 1; // Assuming 1-based scoring
+      total += scoreValue;
+    });
+    const averageScore = total / assessment.questions.length;
+    setScore(averageScore);
+    setTotalScore(total);
+    return averageScore;
+  };
+
   const handleNextQuestion = () => {
-    if (currentQuestion < assessmentData.questions.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
+    if (currentQuestionIndex < assessment.questions.length - 1) {
+      setCurrentQuestionIndex((prev) => prev + 1);
     } else {
-      // Todas as questões respondidas
+      calculateScore();
+      setShowResults(true);
       toast({
         title: "Avaliação concluída!",
-        description: `Você ganhou ${assessmentData.xpReward} XP!`,
+        description: `Você ganhou ${assessment.xpReward} XP!`,
       });
-      navigate("/");
     }
   };
 
   const handlePreviousQuestion = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(prev => prev - 1);
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex((prev) => prev - 1);
     }
   };
 
-  const currentQuestionData = assessmentData.questions[currentQuestion];
+  const handleRestart = () => {
+    setAnswers({});
+    setCurrentQuestionIndex(0);
+    setShowResults(false);
+    setScore(0);
+    setTotalScore(0);
+  };
+
+  const currentQuestionData = assessment.questions[currentQuestionIndex];
+  const progressValue = ((currentQuestionIndex + 1) / assessment.questions.length) * 100;
+  const suggestions = assessment.suggestions ? assessment.suggestions(score) : [];
+
+  if (showResults) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-2xl mx-auto">
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/")}
+              className="flex items-center gap-2 mb-6"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Voltar para Início
+            </Button>
+
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-2xl text-center">📊 Resultados da Avaliação</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center mb-6">
+                  <div className="text-3xl font-bold mb-2 text-blue-600">
+                    {Math.round(score * 100) / 100} / {assessment.questions[0].options.length}
+                  </div>
+                  <p className="text-gray-600 mt-2">
+                    Você ganhou {assessment.xpReward} XP!
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span>Pontuação Total</span>
+                      <span>{totalScore} / {assessment.questions.length * assessment.questions[0].options.length}</span>
+                    </div>
+                    <Progress value={(totalScore / (assessment.questions.length * assessment.questions[0].options.length)) * 100} className="h-2" />
+                  </div>
+
+                  {suggestions.length > 0 && (
+                    <div className="mt-6">
+                      <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                        <Award className="w-5 h-5 text-purple-600" />
+                        Sugestões de Melhoria
+                      </h3>
+                      <div className="space-y-3">
+                        {suggestions.map((sug, idx) => (
+                          <div key={idx} className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                            <h4 className="font-medium text-purple-800">{sug.title}</h4>
+                            <p className="text-sm text-purple-700">{sug.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex gap-4 justify-center">
+              <Button onClick={handleRestart} variant="outline">
+                Refazer Teste
+              </Button>
+              <Button onClick={() => navigate("/")} className="bg-blue-600 hover:bg-blue-700">
+                Voltar para Início
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -95,10 +175,17 @@ const Assessment = () => {
             Voltar
           </Button>
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-800">{assessmentData.title}</h1>
-            <p className="text-gray-600">Questão {currentQuestion + 1} de {assessmentData.questions.length}</p>
+            <h1 className="text-3xl font-bold text-gray-800">{assessment.title}</h1>
+            <p className="text-gray-600">
+              Questão {currentQuestionIndex + 1} de {assessment.questions.length}
+            </p>
           </div>
           <div className="w-20"></div> {/* Espaçador */}
+        </div>
+
+        {/* Progresso */}
+        <div className="mb-6">
+          <Progress value={progressValue} className="h-2" />
         </div>
 
         <Card className="max-w-2xl mx-auto">
@@ -109,12 +196,15 @@ const Assessment = () => {
           </CardHeader>
           <CardContent>
             <RadioGroup
-              value={answers[currentQuestion] || ""}
+              value={answers[currentQuestionIndex] || ""}
               onValueChange={handleAnswerSelect}
               className="space-y-4"
             >
               {currentQuestionData.options.map((option, index) => (
-                <div key={index} className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                <div
+                  key={index}
+                  className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                >
                   <RadioGroupItem value={option} id={`option-${index}`} />
                   <Label htmlFor={`option-${index}`} className="cursor-pointer flex-1">
                     {option}
@@ -127,17 +217,17 @@ const Assessment = () => {
               <Button
                 variant="outline"
                 onClick={handlePreviousQuestion}
-                disabled={currentQuestion === 0}
+                disabled={currentQuestionIndex === 0}
               >
                 Anterior
               </Button>
-              
+
               <Button
                 onClick={handleNextQuestion}
-                disabled={!answers[currentQuestion]}
+                disabled={!answers[currentQuestionIndex]}
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                {currentQuestion === assessmentData.questions.length - 1 ? (
+                {currentQuestionIndex === assessment.questions.length - 1 ? (
                   <>
                     <CheckCircle className="w-4 h-4 mr-2" />
                     Finalizar

@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, CheckCircle, User, MapPin } from "lucide-react";
+import { ArrowLeft, CheckCircle, User, MapPin, Award } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
+import { allAssessments } from "@/data/assessments"; // Import allAssessments for dental suggestions
 
 const DentalAssessment = () => {
   const navigate = useNavigate();
@@ -136,6 +137,8 @@ const DentalAssessment = () => {
     setCurrentQuestion(0);
     setShowResults(false);
     setUserData({ nickname: "", city: "" });
+    setScore(0);
+    setTotalScore(0);
   };
 
   const handleUserDataSubmit = () => {
@@ -150,7 +153,10 @@ const DentalAssessment = () => {
     setCurrentQuestion(0);
   };
 
-  const currentLevel = getLevel(score);
+  const currentLevelResult = getLevel(score);
+  const dentalAssessmentSuggestions = allAssessments.find(a => a.type === "dental")?.suggestions;
+  const suggestions = dentalAssessmentSuggestions ? dentalAssessmentSuggestions(score) : [];
+
 
   if (showResults) {
     return (
@@ -179,13 +185,13 @@ const DentalAssessment = () => {
                     <span>{userData.city}</span>
                   </div>
                   
-                  <div className={`text-3xl font-bold mb-2 ${currentLevel.color}`}>
+                  <div className={`text-3xl font-bold mb-2 ${currentLevelResult.color}`}>
                     {Math.round(score * 100)/100}/5
                   </div>
-                  <div className={`text-xl font-semibold ${currentLevel.color}`}>
-                    Nível {currentLevel.level}
+                  <div className={`text-xl font-semibold ${currentLevelResult.color}`}>
+                    Nível {currentLevelResult.level}
                   </div>
-                  <p className="text-gray-600 mt-2">{currentLevel.description}</p>
+                  <p className="text-gray-600 mt-2">{currentLevelResult.description}</p>
                 </div>
 
                 <div className="space-y-4">
@@ -211,6 +217,23 @@ const DentalAssessment = () => {
                       <div className="text-sm text-gray-600">XP Ganho</div>
                     </div>
                   </div>
+
+                  {suggestions.length > 0 && (
+                    <div className="mt-6">
+                      <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                        <Award className="w-5 h-5 text-purple-600" />
+                        Sugestões de Melhoria
+                      </h3>
+                      <div className="space-y-3">
+                        {suggestions.map((sug, idx) => (
+                          <div key={idx} className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                            <h4 className="font-medium text-purple-800">{sug.title}</h4>
+                            <p className="text-sm text-purple-700">{sug.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
