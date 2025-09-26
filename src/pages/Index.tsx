@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -10,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [currentLevel, setCurrentLevel] = useState(1);
   const [xp, setXp] = useState(250);
   const [completedAssessments, setCompletedAssessments] = useState(3);
@@ -83,9 +85,8 @@ const Index = () => {
         description: `Você começou a avaliação: ${assessment.title}`,
       });
       
-      // Aqui você pode adicionar a lógica para redirecionar para a página da avaliação
-      // Por exemplo: navigate(`/assessment/${id}`);
-      console.log(`Iniciando avaliação ${id}`);
+      // Navegar para a página da avaliação
+      navigate(`/assessment/${id}`);
     }
   };
 
