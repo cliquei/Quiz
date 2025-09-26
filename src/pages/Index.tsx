@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Trophy, Star, Target, BarChart3, Users, Award } from "lucide-react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import AnimatedCard from "@/components/AnimatedCard";
 import { useToast } from "@/hooks/use-toast";
+import { StorageUtils } from "@/utils/storage";
 
 const Index = () => {
   const { toast } = useToast();
@@ -15,34 +16,10 @@ const Index = () => {
   const [currentLevel, setCurrentLevel] = useState(1);
   const [xp, setXp] = useState(250);
   const [completedAssessments, setCompletedAssessments] = useState(3);
-  const [assessments, setAssessments] = useState([
-    {
-      id: 1,
-      title: "Avaliação de Liderança",
-      description: "Teste suas habilidades de gestão de equipe",
-      difficulty: "Médio",
-      xpReward: 50,
-      completed: true,
-      type: "general"
-    },
-    {
-      id: 2,
-      title: "Teste de Comunicação",
-      description: "Avalie suas habilidades de comunicação",
-      difficulty: "Fácil",
-      xpReward: 30,
-      completed: true,
-      type: "general"
-    },
-    {
-      id: 3,
-      title: "Desafio de Resolução de Problemas",
-      description: "Problemas complexos para testar seu raciocínio",
-      difficulty: "Difícil",
-      xpReward: 80,
-      completed: true,
-      type: "general"
-    },
+  const [realRankings, setRealRankings] = useState<any[]>([]);
+  
+  // Apenas os últimos 2 testes estão liberados
+  const assessments = [
     {
       id: 4,
       title: "Avaliação de Trabalho em Equipe",
@@ -61,7 +38,7 @@ const Index = () => {
       completed: false,
       type: "dental"
     }
-  ]);
+  ];
 
   const levels = [
     { xpRequired: 0, title: "Iniciante" },
@@ -75,14 +52,6 @@ const Index = () => {
   const nextLevelData = levels[currentLevel + 1];
   const progress = ((xp - currentLevelData.xpRequired) / (nextLevelData.xpRequired - currentLevelData.xpRequired)) * 100;
 
-  const leaderboard = [
-    { position: 1, name: "Dr. João Silva", xp: 1200, level: "Especialista" },
-    { position: 2, name: "Dra. Maria Santos", xp: 980, level: "Proficiente" },
-    { position: 3, name: "Dr. Pedro Costa", xp: 850, level: "Proficiente" },
-    { position: 4, name: "Dra. Ana Oliveira", xp: 720, level: "Competente" },
-    { position: 5, name: "Dr. Carlos Lima", xp: 650, level: "Competente" }
-  ];
-
   const achievements = [
     { title: "Primeiros Passos", description: "Complete sua primeira avaliação", unlocked: true },
     { title: "Mestre das Avaliações", description: "Complete 5 avaliações", unlocked: false },
@@ -90,6 +59,12 @@ const Index = () => {
     { title: "Nível Máximo", description: "Alcance o nível Especialista", unlocked: false },
     { title: "Especialista Odontológico", description: "Complete a avaliação odontológica", unlocked: false }
   ];
+
+  useEffect(() => {
+    // Carregar rankings reais do localStorage
+    const rankings = StorageUtils.getRankings();
+    setRealRankings(rankings.slice(0, 5)); // Top 5
+  }, []);
 
   const handleStartAssessment = (assessment: any) => {
     if (assessment.type === "dental") {
@@ -105,14 +80,6 @@ const Index = () => {
   };
 
   const handleCompleteAssessment = (id: number) => {
-    setAssessments(prev => 
-      prev.map(assessment => 
-        assessment.id === id 
-          ? { ...assessment, completed: true } 
-          : assessment
-      )
-    );
-    
     const assessment = assessments.find(a => a.id === id);
     if (assessment) {
       setXp(prev => prev + assessment.xpReward);
@@ -122,14 +89,6 @@ const Index = () => {
         title: "Avaliação concluída!",
         description: `Você ganhou ${assessment.xpReward} XP!`,
       });
-
-      // Desbloquear conquista se for a avaliação odontológica
-      if (id === 5) {
-        const updatedAchievements = achievements.map(ach => 
-          ach.title === "Especialista Odontológico" ? { ...ach, unlocked: true } : ach
-        );
-        // Atualizar estado de conquistas se necessário
-      }
     }
   };
 
@@ -177,45 +136,8 @@ const Index = () => {
             </CardContent>
           </AnimatedCard>
 
-          {/* Bloco 2: Ranking */}
+          {/* Bloco 2: Conquistas */}
           <AnimatedCard className="p-6" delay={0.2}>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-6 h-6 text-blue-500" />
-                Ranking Geral
-              </CardTitle>
-              <CardDescription>
-                Top 5 profissionais da plataforma
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {leaderboard.map((player, index) => (
-                  <div key={player.position} className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
-                        index === 0 ? 'bg-yellow-400' : 
-                        index === 1 ? 'bg-gray-400' : 
-                        index === 2 ? 'bg-amber-600' : 'bg-blue-400'
-                      }`}>
-                        {player.position}
-                      </div>
-                      <div>
-                        <div className="font-medium">{player.name}</div>
-                        <div className="text-sm text-gray-500">{player.level}</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold">{player.xp} XP</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </AnimatedCard>
-
-          {/* Bloco 3: Conquistas */}
-          <AnimatedCard className="p-6" delay={0.3}>
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2">
                 <Award className="w-6 h-6 text-purple-500" />
@@ -260,70 +182,119 @@ const Index = () => {
               </div>
             </CardContent>
           </AnimatedCard>
+
+          {/* Bloco 3: Avaliações Disponíveis */}
+          <AnimatedCard className="p-6" delay={0.3}>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-6 h-6 text-blue-500" />
+                Avaliações Disponíveis
+              </CardTitle>
+              <CardDescription>
+                Escolha sua próxima avaliação e ganhe XP
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-4">
+                {assessments.map((assessment, index) => (
+                  <div key={assessment.id} className={`p-4 rounded-lg border ${
+                    assessment.completed 
+                      ? 'bg-green-50 border-green-200' 
+                      : 'bg-white border-gray-200'
+                  }`}>
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="font-semibold text-gray-800">{assessment.title}</h3>
+                      <Badge variant={assessment.completed ? "outline" : "secondary"} className={
+                        assessment.completed 
+                          ? 'bg-green-100 text-green-800 border-green-200' 
+                          : assessment.type === 'dental'
+                          ? 'bg-purple-100 text-purple-800 border-purple-200'
+                          : 'bg-blue-100 text-blue-800 border-blue-200'
+                      }>
+                        {assessment.difficulty}
+                        {assessment.type === 'dental' && ' 🦷'}
+                      </Badge>
+                    </div>
+                    <p className="text-gray-600 text-sm mb-3">{assessment.description}</p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Star className="w-4 h-4 text-yellow-500" />
+                        <span className="text-yellow-700 text-sm font-medium">
+                          +{assessment.xpReward} XP
+                        </span>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant={assessment.completed ? "outline" : "default"}
+                        onClick={() => 
+                          assessment.completed 
+                            ? handleCompleteAssessment(assessment.id) 
+                            : handleStartAssessment(assessment)
+                        }
+                        className={
+                          assessment.completed 
+                            ? 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200' 
+                            : assessment.type === 'dental'
+                            ? 'bg-purple-600 hover:bg-purple-700'
+                            : 'bg-blue-600 hover:bg-blue-700'
+                        }
+                      >
+                        {assessment.completed ? 'Concluído' : 'Iniciar'}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </AnimatedCard>
         </div>
 
-        {/* Bloco 4: Avaliações Disponíveis */}
+        {/* Bloco 4: Ranking Geral (REAL) - Colocado por último */}
         <AnimatedCard className="p-6 bg-gray-950 text-white" delay={0.4}>
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-white">
-              <Users className="w-6 h-6 text-blue-400" />
-              Avaliações Disponíveis
+              <BarChart3 className="w-6 h-6 text-blue-400" />
+              Ranking Geral Real
             </CardTitle>
             <CardDescription className="text-gray-300">
-              Escolha sua próxima avaliação e ganhe XP
+              Top 5 profissionais baseado em desempenho real
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {assessments.map((assessment, index) => (
-                <div key={assessment.id} className={`p-4 rounded-lg border ${
-                  assessment.completed 
-                    ? 'bg-green-950/40 border-green-500/50' 
-                    : 'bg-gray-800/80 border-gray-500/50'
-                }`}>
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="font-semibold text-white">{assessment.title}</h3>
-                    <Badge variant={assessment.completed ? "outline" : "secondary"} className={
-                      assessment.completed 
-                        ? 'bg-green-500/20 text-green-200 border-green-400/50' 
-                        : assessment.type === 'dental'
-                        ? 'bg-purple-500/20 text-purple-200 border-purple-400/50'
-                        : 'bg-blue-500/20 text-blue-200 border-blue-400/50'
-                    }>
-                      {assessment.difficulty}
-                      {assessment.type === 'dental' && ' 🦷'}
-                    </Badge>
-                  </div>
-                  <p className="text-gray-200 text-sm mb-3">{assessment.description}</p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-yellow-300" />
-                      <span className="text-yellow-200 text-sm font-medium">
-                        +{assessment.xpReward} XP
-                      </span>
+            {realRankings.length > 0 ? (
+              <div className="space-y-3">
+                {realRankings.map((player, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-gray-800">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
+                        index === 0 ? 'bg-yellow-500' : 
+                        index === 1 ? 'bg-gray-400' : 
+                        index === 2 ? 'bg-amber-600' : 'bg-blue-400'
+                      }`}>
+                        {index + 1}
+                      </div>
+                      <div>
+                        <div className="font-medium text-white">{player.nickname}</div>
+                        <div className="text-sm text-gray-300">{player.city}</div>
+                      </div>
                     </div>
-                    <Button 
-                      size="sm" 
-                      variant={assessment.completed ? "outline" : "default"}
-                      onClick={() => 
-                        assessment.completed 
-                          ? handleCompleteAssessment(assessment.id) 
-                          : handleStartAssessment(assessment)
-                      }
-                      className={
-                        assessment.completed 
-                          ? 'bg-transparent text-green-200 border-green-300 hover:bg-green-900/40' 
-                          : assessment.type === 'dental'
-                          ? 'bg-purple-600 hover:bg-purple-700'
-                          : 'bg-blue-600 hover:bg-blue-700'
-                      }
-                    >
-                      {assessment.completed ? 'Concluído' : 'Iniciar'}
-                    </Button>
+                    <div className="text-right">
+                      <div className="font-bold text-white">{player.xp} XP</div>
+                      <div className="text-sm text-gray-300">{player.level}</div>
+                      {player.score && (
+                        <div className="text-xs text-gray-400">{player.score}/5</div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-300">
+                <BarChart3 className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                <p>Nenhum resultado ainda</p>
+                <p className="text-sm">Seja o primeiro a completar uma avaliação!</p>
+              </div>
+            )}
           </CardContent>
         </AnimatedCard>
 
