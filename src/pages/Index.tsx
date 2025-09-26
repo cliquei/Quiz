@@ -22,7 +22,8 @@ const Index = () => {
       description: "Teste suas habilidades de gestão de equipe",
       difficulty: "Médio",
       xpReward: 50,
-      completed: true
+      completed: true,
+      type: "general"
     },
     {
       id: 2,
@@ -30,7 +31,8 @@ const Index = () => {
       description: "Avalie suas habilidades de comunicação",
       difficulty: "Fácil",
       xpReward: 30,
-      completed: true
+      completed: true,
+      type: "general"
     },
     {
       id: 3,
@@ -38,7 +40,8 @@ const Index = () => {
       description: "Problemas complexos para testar seu raciocínio",
       difficulty: "Difícil",
       xpReward: 80,
-      completed: true
+      completed: true,
+      type: "general"
     },
     {
       id: 4,
@@ -46,7 +49,17 @@ const Index = () => {
       description: "Como você se sai em ambientes colaborativos",
       difficulty: "Médio",
       xpReward: 60,
-      completed: false
+      completed: false,
+      type: "general"
+    },
+    {
+      id: 5,
+      title: "📋 Avaliação Odontológica Completa",
+      description: "Questionário profissional para dentistas - 25 questões",
+      difficulty: "Avançado",
+      xpReward: 100,
+      completed: false,
+      type: "dental"
     }
   ]);
 
@@ -63,31 +76,32 @@ const Index = () => {
   const progress = ((xp - currentLevelData.xpRequired) / (nextLevelData.xpRequired - currentLevelData.xpRequired)) * 100;
 
   const leaderboard = [
-    { position: 1, name: "João Silva", xp: 1200, level: "Especialista" },
-    { position: 2, name: "Maria Santos", xp: 980, level: "Proficiente" },
-    { position: 3, name: "Pedro Costa", xp: 850, level: "Proficiente" },
-    { position: 4, name: "Ana Oliveira", xp: 720, level: "Competente" },
-    { position: 5, name: "Carlos Lima", xp: 650, level: "Competente" }
+    { position: 1, name: "Dr. João Silva", xp: 1200, level: "Especialista" },
+    { position: 2, name: "Dra. Maria Santos", xp: 980, level: "Proficiente" },
+    { position: 3, name: "Dr. Pedro Costa", xp: 850, level: "Proficiente" },
+    { position: 4, name: "Dra. Ana Oliveira", xp: 720, level: "Competente" },
+    { position: 5, name: "Dr. Carlos Lima", xp: 650, level: "Competente" }
   ];
 
   const achievements = [
     { title: "Primeiros Passos", description: "Complete sua primeira avaliação", unlocked: true },
     { title: "Mestre das Avaliações", description: "Complete 5 avaliações", unlocked: false },
     { title: "Top 3", description: "Entre no top 3 do ranking", unlocked: false },
-    { title: "Nível Máximo", description: "Alcance o nível Especialista", unlocked: false }
+    { title: "Nível Máximo", description: "Alcance o nível Especialista", unlocked: false },
+    { title: "Especialista Odontológico", description: "Complete a avaliação odontológica", unlocked: false }
   ];
 
-  const handleStartAssessment = (id: number) => {
-    const assessment = assessments.find(a => a.id === id);
-    if (assessment) {
-      toast({
-        title: "Avaliação iniciada!",
-        description: `Você começou a avaliação: ${assessment.title}`,
-      });
-      
-      // Navegar para a página da avaliação
-      navigate(`/assessment/${id}`);
+  const handleStartAssessment = (assessment: any) => {
+    if (assessment.type === "dental") {
+      navigate("/dental-assessment");
+    } else {
+      navigate(`/assessment/${assessment.id}`);
     }
+    
+    toast({
+      title: "Avaliação iniciada!",
+      description: `Você começou a avaliação: ${assessment.title}`,
+    });
   };
 
   const handleCompleteAssessment = (id: number) => {
@@ -108,6 +122,14 @@ const Index = () => {
         title: "Avaliação concluída!",
         description: `Você ganhou ${assessment.xpReward} XP!`,
       });
+
+      // Desbloquear conquista se for a avaliação odontológica
+      if (id === 5) {
+        const updatedAchievements = achievements.map(ach => 
+          ach.title === "Especialista Odontológico" ? { ...ach, unlocked: true } : ach
+        );
+        // Atualizar estado de conquistas se necessário
+      }
     }
   };
 
@@ -163,7 +185,7 @@ const Index = () => {
                 Ranking Geral
               </CardTitle>
               <CardDescription>
-                Top 5 jogadores da plataforma
+                Top 5 profissionais da plataforma
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -240,7 +262,7 @@ const Index = () => {
           </AnimatedCard>
         </div>
 
-        {/* Bloco 4: Avaliações Disponíveis - MELHOR CONTRASTE */}
+        {/* Bloco 4: Avaliações Disponíveis */}
         <AnimatedCard className="p-6 bg-gray-950 text-white" delay={0.4}>
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-white">
@@ -264,9 +286,12 @@ const Index = () => {
                     <Badge variant={assessment.completed ? "outline" : "secondary"} className={
                       assessment.completed 
                         ? 'bg-green-500/20 text-green-200 border-green-400/50' 
+                        : assessment.type === 'dental'
+                        ? 'bg-purple-500/20 text-purple-200 border-purple-400/50'
                         : 'bg-blue-500/20 text-blue-200 border-blue-400/50'
                     }>
                       {assessment.difficulty}
+                      {assessment.type === 'dental' && ' 🦷'}
                     </Badge>
                   </div>
                   <p className="text-gray-200 text-sm mb-3">{assessment.description}</p>
@@ -283,11 +308,13 @@ const Index = () => {
                       onClick={() => 
                         assessment.completed 
                           ? handleCompleteAssessment(assessment.id) 
-                          : handleStartAssessment(assessment.id)
+                          : handleStartAssessment(assessment)
                       }
                       className={
                         assessment.completed 
                           ? 'bg-transparent text-green-200 border-green-300 hover:bg-green-900/40' 
+                          : assessment.type === 'dental'
+                          ? 'bg-purple-600 hover:bg-purple-700'
                           : 'bg-blue-600 hover:bg-blue-700'
                       }
                     >
