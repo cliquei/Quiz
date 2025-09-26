@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, CheckCircle, User, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
-import { StorageUtils } from "@/utils/storage";
 
 const DentalAssessment = () => {
   const navigate = useNavigate();
@@ -110,34 +109,16 @@ const DentalAssessment = () => {
     return { level: "Avançado", description: "Profissional consolidado tecnicamente e com carreira estruturada", color: "text-green-600" };
   };
 
-  const getLevelFromXP = (xp: number) => {
-    if (xp >= 1000) return "Especialista";
-    if (xp >= 600) return "Proficiente";
-    if (xp >= 300) return "Competente";
-    if (xp >= 100) return "Aprendiz";
-    return "Iniciante";
-  };
-
   const handleNextQuestion = () => {
     if (currentQuestion < allQuestions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
       const finalScore = calculateScore();
       const level = getLevel(finalScore);
-      const xpEarned = Math.round(finalScore * 15);
-      
-      // Salvar no ranking
-      StorageUtils.saveToRanking({
-        nickname: userData.nickname,
-        city: userData.city,
-        xp: xpEarned,
-        level: getLevelFromXP(xpEarned),
-        score: Math.round(finalScore * 100) / 100
-      });
       
       toast({
         title: "Avaliação concluída!",
-        description: `Seu nível: ${level.level} - ${Math.round(finalScore * 100)/100}/5 - Ganhou ${xpEarned} XP!`,
+        description: `Seu nível: ${level.level} - ${Math.round(finalScore * 100)/100}/5`,
       });
       
       setShowResults(true);
