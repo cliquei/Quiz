@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, CheckCircle, User, MapPin, BookOpen, Brain, TrendingUp, Heart, Zap } from "lucide-react";
+import { ArrowLeft, CheckCircle, User, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 
@@ -18,16 +18,12 @@ const DentalAssessment = () => {
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
-  const [blockScores, setBlockScores] = useState<number[]>([]);
-  const [improvementAreas, setImprovementAreas] = useState<string[]>([]);
 
   const assessmentData = {
-    title: "📋 Sistema Completo de Avaliação Odontológica",
+    title: "📋 Questionário de Avaliação do Nível Profissional em Odontologia",
     blocks: [
       {
-        id: 1,
         title: "Bloco 1 – Formação e Conhecimento Técnico",
-        icon: BookOpen,
         questions: [
           "Com que frequência você atualiza seus conhecimentos em odontologia (cursos, congressos, especializações, leituras científicas)?",
           "Você domina protocolos e técnicas atualizadas nas principais áreas de sua atuação?",
@@ -37,9 +33,7 @@ const DentalAssessment = () => {
         ]
       },
       {
-        id: 2,
         title: "Bloco 2 – Habilidades Clínicas e Atuação Prática",
-        icon: Brain,
         questions: [
           "Você se considera eficiente na gestão de tempo e organização dos atendimentos clínicos?",
           "Consegue lidar com intercorrências e complicações clínicas de forma resolutiva?",
@@ -49,9 +43,7 @@ const DentalAssessment = () => {
         ]
       },
       {
-        id: 3,
         title: "Bloco 3 – Gestão de Carreira e Negócios",
-        icon: TrendingUp,
         questions: [
           "Você sabe calcular custos, precificar procedimentos e gerir financeiramente sua clínica/consultório?",
           "Utiliza ferramentas de marketing digital ou estratégias de relacionamento para atrair pacientes?",
@@ -61,9 +53,7 @@ const DentalAssessment = () => {
         ]
       },
       {
-        id: 4,
         title: "Bloco 4 – Relacionamento e Humanização",
-        icon: Heart,
         questions: [
           "Você consegue se comunicar de forma clara e empática com os pacientes?",
           "Consegue transmitir confiança e segurança durante a consulta/tratamento?",
@@ -73,9 +63,7 @@ const DentalAssessment = () => {
         ]
       },
       {
-        id: 5,
         title: "Bloco 5 – Inovação e Futuro",
-        icon: Zap,
         questions: [
           "Você acompanha tendências de inovação em odontologia (ex.: inteligência artificial, odontologia digital, biomateriais)?",
           "Está aberto a investir em novos equipamentos e tecnologias?",
@@ -96,45 +84,6 @@ const DentalAssessment = () => {
 
   const allQuestions = assessmentData.blocks.flatMap(block => block.questions);
 
-  const getImprovementSuggestions = (blockScores: number[]) => {
-    const suggestions: string[] = [];
-    const blockNames = [
-      "Formação e Conhecimento Técnico",
-      "Habilidades Clínicas e Atuação Prática",
-      "Gestão de Carreira e Negócios",
-      "Relacionamento e Humanização",
-      "Inovação e Futuro"
-    ];
-
-    // Encontrar os 2 blocos com menores pontuações
-    const lowestScoringBlocks = blockScores
-      .map((score, index) => ({ score, index }))
-      .sort((a, b) => a.score - b.score)
-      .slice(0, 2);
-
-    lowestScoringBlocks.forEach(({ index }) => {
-      switch (index) {
-        case 0:
-          suggestions.push("📚 **Formação Contínua**: Considere investir em cursos de atualização e especializações para manter seu conhecimento técnico sempre atualizado");
-          break;
-        case 1:
-          suggestions.push("⚡ **Prática Clínica**: Pratique procedimentos complexos e desenvolva protocolos para lidar com intercorrências durante os atendimentos");
-          break;
-        case 2:
-          suggestions.push("💼 **Gestão Empresarial**: Estude sobre precificação, marketing digital e gestão financeira para profissionalizar seu consultório");
-          break;
-        case 3:
-          suggestions.push("❤️ **Comunicação**: Desenvolva técnicas de comunicação não-violenta e escuta ativa para melhorar o relacionamento com pacientes");
-          break;
-        case 4:
-          suggestions.push("🚀 **Inovação**: Acompanhe as tendências tecnológicas e considere investir em equipamentos digitais para se manter competitivo");
-          break;
-      }
-    });
-
-    return suggestions;
-  };
-
   const handleAnswerSelect = (answer: string) => {
     setAnswers(prev => ({
       ...prev,
@@ -144,43 +93,20 @@ const DentalAssessment = () => {
 
   const calculateScore = () => {
     let total = 0;
-    const blockScoresArray: number[] = [];
-    
-    // Calcular pontuação por bloco
-    assessmentData.blocks.forEach((block, blockIndex) => {
-      let blockTotal = 0;
-      const startIndex = blockIndex * 5; // Each block has 5 questions
-      
-      for (let i = 0; i < 5; i++) {
-        const answer = answers[startIndex + i];
-        if (answer) {
-          const scoreValue = assessmentData.options.indexOf(answer) + 1;
-          blockTotal += scoreValue;
-        }
-      }
-      
-      const blockAverage = blockTotal / 5; // Average score for the block
-      blockScoresArray.push(blockAverage);
-      total += blockTotal;
+    Object.values(answers).forEach(answer => {
+      const scoreValue = assessmentData.options.indexOf(answer) + 1;
+      total += scoreValue;
     });
-
-    const averageScore = total / allQuestions.length; // Overall average score
+    const averageScore = total / allQuestions.length;
     setScore(averageScore);
     setTotalScore(total);
-    setBlockScores(blockScoresArray);
-    
-    // Gerar sugestões de melhoria
-    const suggestions = getImprovementSuggestions(blockScoresArray);
-    setImprovementAreas(suggestions);
-    
     return averageScore;
   };
 
   const getLevel = (score: number) => {
     if (score <= 2) return { level: "Básico", description: "Necessário investir em formação, técnica e visão de carreira", color: "text-red-600" };
     if (score <= 3) return { level: "Intermediário", description: "Bom domínio, mas ainda precisa desenvolver consistência e visão estratégica", color: "text-yellow-600" };
-    if (score <= 4) return { level: "Avançado", description: "Profissional consolidado tecnicamente e com carreira estruturada", color: "text-green-600" };
-    return { level: "Expert", description: "Referência na área com domínio completo e visão de futuro", color: "text-purple-600" };
+    return { level: "Avançado", description: "Profissional consolidado tecnicamente e com carreira estruturada", color: "text-green-600" };
   };
 
   const handleNextQuestion = () => {
@@ -210,8 +136,6 @@ const DentalAssessment = () => {
     setCurrentQuestion(0);
     setShowResults(false);
     setUserData({ nickname: "", city: "" });
-    setBlockScores([]);
-    setImprovementAreas([]);
   };
 
   const handleUserDataSubmit = () => {
@@ -232,7 +156,7 @@ const DentalAssessment = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-2xl mx-auto">
             <Button
               variant="ghost"
               onClick={() => navigate("/")}
@@ -264,37 +188,14 @@ const DentalAssessment = () => {
                   <p className="text-gray-600 mt-2">{currentLevel.description}</p>
                 </div>
 
-                <div className="space-y-6">
-                  {/* Pontuação por Bloco */}
+                <div className="space-y-4">
                   <div>
-                    <h3 className="font-semibold mb-4">Pontuação por Área:</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                      {assessmentData.blocks.map((block, index) => (
-                        <div key={block.id} className="text-center p-4 bg-blue-50 rounded-lg">
-                          <block.icon className="w-6 h-6 mx-auto mb-2 text-blue-600" />
-                          <div className="text-sm font-medium mb-1">{block.title.split('–')[1].trim()}</div>
-                          <div className="text-2xl font-bold text-blue-600">
-                            {Math.round(blockScores[index] * 100)/100}
-                          </div>
-                          <div className="text-xs text-gray-600">/5</div>
-                        </div>
-                      ))}
+                    <div className="flex justify-between mb-1">
+                      <span>Pontuação Total</span>
+                      <span>{totalScore}/{allQuestions.length * 5}</span>
                     </div>
+                    <Progress value={(totalScore / (allQuestions.length * 5)) * 100} className="h-2" />
                   </div>
-
-                  {/* Sugestões de Melhoria */}
-                  {improvementAreas.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold mb-4">💡 Áreas para Melhorar:</h3>
-                      <div className="space-y-3">
-                        {improvementAreas.map((suggestion, index) => (
-                          <div key={index} className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                            <p className="text-yellow-800" dangerouslySetInnerHTML={{ __html: suggestion }}></p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                     <div className="text-center p-4 bg-blue-50 rounded-lg">
@@ -385,7 +286,7 @@ const DentalAssessment = () => {
   const blockIndex = assessmentData.blocks.findIndex(block => 
     block.questions.includes(allQuestions[currentQuestion])
   );
-  // const questionInBlock = currentBlock?.questions.indexOf(allQuestions[currentQuestion]) || 0; // Not used
+  const questionInBlock = currentBlock?.questions.indexOf(allQuestions[currentQuestion]) || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -415,12 +316,9 @@ const DentalAssessment = () => {
 
           <Card>
             <CardHeader>
-              <div className="flex items-center gap-2 mb-2">
-                {currentBlock?.icon && <currentBlock.icon className="w-5 h-5 text-blue-600" />}
-                <CardTitle className="text-lg text-gray-600">
-                  {currentBlock?.title}
-                </CardTitle>
-              </div>
+              <CardTitle className="text-lg text-gray-600">
+                {currentBlock?.title}
+              </CardTitle>
               <CardTitle className="text-xl">
                 {allQuestions[currentQuestion]}
               </CardTitle>
