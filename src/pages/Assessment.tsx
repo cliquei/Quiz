@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,20 +8,31 @@ import { ArrowLeft, CheckCircle, Award } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { allAssessments, AssessmentType } from "@/data/assessments";
+import { useUserProgress } from "@/hooks/use-user-progress";
 
 const Assessment = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { updateProgress, completedAssessmentIds } = useUserProgress();
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
+  const [isAssessmentCompleted, setIsAssessmentCompleted] = useState(false);
 
   const assessment: AssessmentType | undefined = allAssessments.find(
     (a) => a.id === Number(id) && a.type === "general"
   );
+
+  useEffect(() => {
+    if (assessment) {
+      setIsAssessmentCompleted(completedAssessmentIds.includes(assessment.id));
+    }
+  }, [assessment, completedAssessmentIds]);
+
 
   if (!assessment) {
     return (
@@ -65,10 +76,18 @@ const Assessment = () => {
     } else {
       calculateScore();
       setShowResults(true);
-      toast({
-        title: "Avaliação concluída!",
-        description: `Você ganhou ${assessment.xpReward} XP!`,
-      });
+      if (!isAssessmentCompleted) {
+        updateProgress(assessment.xpReward, assessment.id);
+        toast({
+          title: "Avaliação concluída!",
+          description: `Você ganhou ${assessment.xpReward} XP!`,
+        });
+      } else {
+        toast({
+          title: "Avaliação já concluída!",
+          description: "Você já completou esta avaliação anteriormente.",
+        });
+      }
     }
   };
 
@@ -114,7 +133,7 @@ const Assessment = () => {
                     {Math.round(score * 100) / 100} / {assessment.questions[0].options.length}
                   </div>
                   <p className="text-gray-600 mt-2">
-                    Você ganhou {assessment.xpReward} XP!
+                    {isAssessmentCompleted ? "Você já havia completado esta avaliação." : `Você ganhou ${assessment.xpReward} XP!`}
                   </p>
                 </div>
 

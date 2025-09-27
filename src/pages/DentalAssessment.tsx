@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,16 +9,27 @@ import { ArrowLeft, CheckCircle, User, MapPin, Award } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { allAssessments } from "@/data/assessments"; // Import allAssessments for dental suggestions
+import { useUserProgress } from "@/hooks/use-user-progress";
 
 const DentalAssessment = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { updateProgress, completedAssessmentIds } = useUserProgress();
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [userData, setUserData] = useState({ nickname: "", city: "" });
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
+  const [isAssessmentCompleted, setIsAssessmentCompleted] = useState(false);
+
+  const dentalAssessmentId = 5; // ID da avaliação odontológica
+  const dentalAssessmentData = allAssessments.find(a => a.id === dentalAssessmentId);
+
+  useEffect(() => {
+    setIsAssessmentCompleted(completedAssessmentIds.includes(dentalAssessmentId));
+  }, [completedAssessmentIds]);
 
   const assessmentData = {
     title: "📋 Questionário de Avaliação do Nível Profissional em Odontologia",
@@ -117,10 +128,18 @@ const DentalAssessment = () => {
       const finalScore = calculateScore();
       const level = getLevel(finalScore);
       
-      toast({
-        title: "Avaliação concluída!",
-        description: `Seu nível: ${level.level} - ${Math.round(finalScore * 100)/100}/5`,
-      });
+      if (!isAssessmentCompleted && dentalAssessmentData) {
+        updateProgress(dentalAssessmentData.xpReward, dentalAssessmentId);
+        toast({
+          title: "Avaliação concluída!",
+          description: `Seu nível: ${level.level} - ${Math.round(finalScore * 100)/100}/5. Você ganhou ${dentalAssessmentData.xpReward} XP!`,
+        });
+      } else {
+        toast({
+          title: "Avaliação já concluída!",
+          description: `Seu nível: ${level.level} - ${Math.round(finalScore * 100)/100}/5.`,
+        });
+      }
       
       setShowResults(true);
     }
@@ -213,7 +232,7 @@ const DentalAssessment = () => {
                       <div className="text-sm text-gray-600">Percentual de acerto</div>
                     </div>
                     <div className="text-center p-4 bg-purple-50 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">{Math.round(score * 15)}</div>
+                      <div className="text-2xl font-bold text-purple-600">{dentalAssessmentData?.xpReward || 0}</div>
                       <div className="text-sm text-gray-600">XP Ganho</div>
                     </div>
                   </div>

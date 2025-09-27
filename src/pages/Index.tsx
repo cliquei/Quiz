@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,27 +9,22 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 import AnimatedCard from "@/components/AnimatedCard";
 import { useToast } from "@/hooks/use-toast";
 import { allAssessments } from "@/data/assessments"; // Import allAssessments
+import { useUserProgress } from "@/hooks/use-user-progress";
 
 const Index = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [currentLevel, setCurrentLevel] = useState(1);
-  const [xp, setXp] = useState(250);
-  const [completedAssessments, setCompletedAssessments] = useState(3);
-  // Use allAssessments do arquivo de dados
-  const [assessments, setAssessments] = useState(allAssessments);
+  const { xp, currentLevel, completedAssessmentIds, achievements, levels, resetProgress } = useUserProgress();
 
-  const levels = [
-    { xpRequired: 0, title: "Iniciante" },
-    { xpRequired: 100, title: "Aprendiz" },
-    { xpRequired: 300, title: "Competente" },
-    { xpRequired: 600, title: "Proficiente" },
-    { xpRequired: 1000, title: "Especialista" }
-  ];
+  // Use allAssessments do arquivo de dados, mas marque como concluídas com base no estado persistente
+  const assessmentsWithCompletion = allAssessments.map(assessment => ({
+    ...assessment,
+    completed: completedAssessmentIds.includes(assessment.id)
+  }));
 
   const currentLevelData = levels[currentLevel];
-  const nextLevelData = levels[currentLevel + 1];
-  const progress = ((xp - currentLevelData.xpRequired) / (nextLevelData.xpRequired - currentLevelData.xpRequired)) * 100;
+  const nextLevelData = levels[currentLevel + 1] || { xpRequired: xp + 1, title: "Mestre Supremo" }; // Fallback for max level
+  const progress = nextLevelData ? ((xp - currentLevelData.xpRequired) / (nextLevelData.xpRequired - currentLevelData.xpRequired)) * 100 : 100;
 
   const leaderboard = [
     { position: 1, name: "Dr. João Silva", xp: 1200, level: "Especialista" },
@@ -37,14 +32,6 @@ const Index = () => {
     { position: 3, name: "Dr. Pedro Costa", xp: 850, level: "Proficiente" },
     { position: 4, name: "Dra. Ana Oliveira", xp: 720, level: "Competente" },
     { position: 5, name: "Dr. Carlos Lima", xp: 650, level: "Competente" }
-  ];
-
-  const achievements = [
-    { title: "Primeiros Passos", description: "Complete sua primeira avaliação", unlocked: true },
-    { title: "Mestre das Avaliações", description: "Complete 5 avaliações", unlocked: false },
-    { title: "Top 3", description: "Entre no top 3 do ranking", unlocked: false },
-    { title: "Nível Máximo", description: "Alcance o nível Especialista", unlocked: false },
-    { title: "Especialista Odontológico", description: "Complete a avaliação odontológica", unlocked: false }
   ];
 
   const handleStartAssessment = (assessment: any) => {
@@ -60,35 +47,6 @@ const Index = () => {
     });
   };
 
-  const handleCompleteAssessment = (id: number) => {
-    setAssessments(prev => 
-      prev.map(assessment => 
-        assessment.id === id 
-          ? { ...assessment, completed: true } 
-          : assessment
-      )
-    );
-    
-    const assessment = assessments.find(a => a.id === id);
-    if (assessment) {
-      setXp(prev => prev + assessment.xpReward);
-      setCompletedAssessments(prev => prev + 1);
-      
-      toast({
-        title: "Avaliação concluída!",
-        description: `Você ganhou ${assessment.xpReward} XP!`,
-      });
-
-      // Desbloquear conquista se for a avaliação odontológica
-      if (id === 5) {
-        const updatedAchievements = achievements.map(ach => 
-          ach.title === "Especialista Odontológico" ? { ...ach, unlocked: true } : ach
-        );
-        // Atualizar estado de conquistas se necessário
-      }
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-8">
@@ -100,6 +58,9 @@ const Index = () => {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Transforme suas avaliações em uma experiência divertida e motivadora com nosso sistema gamificado
           </p>
+          <Button onClick={resetProgress} variant="destructive" className="mt-4">
+            Resetar Progresso
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
@@ -119,14 +80,14 @@ const Index = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">XP: {xp}</span>
                   <span className="text-sm text-gray-500">
-                    Próximo nível: {nextLevelData.xpRequired} XP
+                    {nextLevelData.title === "Mestre Supremo" ? "Nível Máximo Atingido!" : `Próximo nível (${nextLevelData.title}): ${nextLevelData.xpRequired} XP`}
                   </span>
                 </div>
                 <Progress value={progress} className="h-2" />
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">
                     <Target className="w-4 h-4 mr-1" />
-                    {completedAssessments} avaliações concluídas
+                    {completedAssessmentIds.length} avaliações concluídas
                   </Badge>
                 </div>
               </div>
@@ -231,7 +192,7 @@ const Index = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {assessments.map((assessment, index) => (
+              {assessmentsWithCompletion.map((assessment, index) => (
                 <div key={assessment.id} className={`p-4 rounded-lg border ${
                   assessment.completed 
                     ? 'bg-green-950/40 border-green-500/50' 
@@ -261,11 +222,8 @@ const Index = () => {
                     <Button 
                       size="sm" 
                       variant={assessment.completed ? "outline" : "default"}
-                      onClick={() => 
-                        assessment.completed 
-                          ? handleCompleteAssessment(assessment.id) 
-                          : handleStartAssessment(assessment)
-                      }
+                      onClick={() => handleStartAssessment(assessment)}
+                      disabled={assessment.completed} // Desabilita o botão se a avaliação já foi concluída
                       className={
                         assessment.completed 
                           ? 'bg-transparent text-green-200 border-green-300 hover:bg-green-900/40' 
