@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Star, Target, BarChart3, Users, Award } from "lucide-react";
+import { Trophy, Star, Target, Users, Award, Settings } from "lucide-react"; // Adicionado Settings icon
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import AnimatedCard from "@/components/AnimatedCard";
 import { useToast } from "@/hooks/use-toast";
@@ -25,14 +25,6 @@ const Index = () => {
   const currentLevelData = levels[currentLevel];
   const nextLevelData = levels[currentLevel + 1] || { xpRequired: xp + 1, title: "Mestre Supremo" }; // Fallback for max level
   const progress = nextLevelData ? ((xp - currentLevelData.xpRequired) / (nextLevelData.xpRequired - currentLevelData.xpRequired)) * 100 : 100;
-
-  const leaderboard = [
-    { position: 1, name: "Dr. João Silva", xp: 1200, level: "Especialista" },
-    { position: 2, name: "Dra. Maria Santos", xp: 980, level: "Proficiente" },
-    { position: 3, name: "Dr. Pedro Costa", xp: 850, level: "Proficiente" },
-    { position: 4, name: "Dra. Ana Oliveira", xp: 720, level: "Competente" },
-    { position: 5, name: "Dr. Carlos Lima", xp: 650, level: "Competente" }
-  ];
 
   const handleStartAssessment = (assessment: any) => {
     if (assessment.type === "dental") {
@@ -58,12 +50,18 @@ const Index = () => {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Transforme suas avaliações em uma experiência divertida e motivadora com nosso sistema gamificado
           </p>
-          <Button onClick={resetProgress} variant="destructive" className="mt-4">
-            Resetar Progresso
-          </Button>
+          <div className="mt-4 flex justify-center gap-4">
+            <Button onClick={resetProgress} variant="destructive">
+              Resetar Progresso
+            </Button>
+            <Button onClick={() => navigate("/admin")} variant="outline" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Área Admin
+            </Button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12"> {/* Ajustado para 2 colunas */}
           {/* Bloco 1: Progresso do Usuário */}
           <AnimatedCard className="p-6" delay={0.1}>
             <CardHeader className="pb-4">
@@ -94,45 +92,8 @@ const Index = () => {
             </CardContent>
           </AnimatedCard>
 
-          {/* Bloco 2: Ranking */}
-          <AnimatedCard className="p-6" delay={0.2}>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-6 h-6 text-blue-500" />
-                Ranking Geral
-              </CardTitle>
-              <CardDescription>
-                Top 5 profissionais da plataforma
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {leaderboard.map((player, index) => (
-                  <div key={player.position} className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
-                        index === 0 ? 'bg-yellow-400' : 
-                        index === 1 ? 'bg-gray-400' : 
-                        index === 2 ? 'bg-amber-600' : 'bg-blue-400'
-                      }`}>
-                        {player.position}
-                      </div>
-                      <div>
-                        <div className="font-medium">{player.name}</div>
-                        <div className="text-sm text-gray-500">{player.level}</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold">{player.xp} XP</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </AnimatedCard>
-
           {/* Bloco 3: Conquistas */}
-          <AnimatedCard className="p-6" delay={0.3}>
+          <AnimatedCard className="p-6" delay={0.2}> {/* Ajustado delay */}
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2">
                 <Award className="w-6 h-6 text-purple-500" />
@@ -180,7 +141,7 @@ const Index = () => {
         </div>
 
         {/* Bloco 4: Avaliações Disponíveis */}
-        <AnimatedCard className="p-6 bg-gray-950 text-white" delay={0.4}>
+        <AnimatedCard className="p-6 bg-gray-950 text-white" delay={0.3}> {/* Ajustado delay */}
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-white">
               <Users className="w-6 h-6 text-blue-400" />

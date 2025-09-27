@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, CheckCircle, Award } from "lucide-react";
+import { Input } from "@/components/ui/input"; // Importar Input
+import { ArrowLeft, CheckCircle, Award, Mail } from "lucide-react"; // Importar Mail icon
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { allAssessments, AssessmentType } from "@/data/assessments";
@@ -22,6 +23,7 @@ const Assessment = () => {
   const [score, setScore] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
   const [isAssessmentCompleted, setIsAssessmentCompleted] = useState(false);
+  const [userEmail, setUserEmail] = useState(""); // Estado para o e-mail do usuário
 
   const assessment: AssessmentType | undefined = allAssessments.find(
     (a) => a.id === Number(id) && a.type === "general"
@@ -32,6 +34,32 @@ const Assessment = () => {
       setIsAssessmentCompleted(completedAssessmentIds.includes(assessment.id));
     }
   }, [assessment, completedAssessmentIds]);
+
+  const handleAnswerSelect = (answer: string) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [currentQuestionIndex]: answer,
+    }));
+  };
+
+  // Função para lidar com a seleção de respostas via teclado
+  const handleKeyPress = useCallback((event: KeyboardEvent) => {
+    if (showResults || !assessment) return;
+
+    const key = event.key;
+    const optionIndex = parseInt(key, 10) - 1; // '1' -> index 0, '2' -> index 1, etc.
+
+    if (optionIndex >= 0 && optionIndex < assessment.questions[currentQuestionIndex].options.length) {
+      handleAnswerSelect(assessment.questions[currentQuestionIndex].options[optionIndex]);
+    }
+  }, [currentQuestionIndex, assessment, showResults, handleAnswerSelect]);
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyPress);
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [handleKeyPress]);
 
 
   if (!assessment) {
@@ -49,13 +77,6 @@ const Assessment = () => {
       </div>
     );
   }
-
-  const handleAnswerSelect = (answer: string) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [currentQuestionIndex]: answer,
-    }));
-  };
 
   const calculateScore = () => {
     let total = 0;
@@ -103,6 +124,24 @@ const Assessment = () => {
     setShowResults(false);
     setScore(0);
     setTotalScore(0);
+    setUserEmail("");
+  };
+
+  const handleSendEmail = () => {
+    if (!userEmail) {
+      toast({
+        title: "E-mail vazio",
+        description: "Por favor, insira seu e-mail para receber os resultados.",
+        variant: "destructive",
+      });
+      return;
+    }
+    // Aqui você integraria com um serviço de backend para enviar o e-mail.
+    // Por exemplo, usando uma API do Supabase Functions ou outro serviço de e-mail.
+    toast({
+      title: "E-mail de resultados",
+      description: `Um e-mail com seus resultados foi 'enviado' para ${userEmail}. (Requer backend para envio real)`,
+    });
   };
 
   const currentQuestionData = assessment.questions[currentQuestionIndex];
@@ -162,6 +201,41 @@ const Assessment = () => {
                       </div>
                     </div>
                   )}
+
+                  <div className="mt-8 p-4 border rounded-lg bg-blue-50">
+                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                      <Mail className="w-5 h-5 text-blue-600" />
+                      Receba seus resultados por e-mail
+                    </h3>
+                    <div className="flex gap-2">
+                      <Input
+                        type="email"
+                        placeholder="seu.email@exemplo.com"
+                        value={userEmail}
+                        onChange={(e) => setUserEmail(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button onClick={handleSendEmail} className="bg-blue-600 hover:bg-blue-700">
+                        Enviar
+                      </Button>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-2">
+                      O envio de e-mails requer uma integração de backend.
+                      <Button 
+                        variant="link" 
+                        className="h-auto p-0 ml-1 text-blue-600 hover:text-blue-800"
+                        onClick={() => {
+                          toast({
+                            title: "Integração de Backend Necessária",
+                            description: "Para enviar e-mails e gerenciar configurações de forma persistente, você precisa adicionar um backend ao seu aplicativo.",
+                            duration: 5000,
+                          });
+                        }}
+                      >
+                        Adicionar Backend
+                      </Button>
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -226,7 +300,7 @@ const Assessment = () => {
                 >
                   <RadioGroupItem value={option} id={`option-${index}`} />
                   <Label htmlFor={`option-${index}`} className="cursor-pointer flex-1">
-                    {option}
+                    <span className="font-medium">{index + 1}.</span> {option}
                   </Label>
                 </div>
               ))}
