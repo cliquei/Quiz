@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input"; // Importar Input
-import { ArrowLeft, CheckCircle, Award, Mail } from "lucide-react"; // Importar Mail icon
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, CheckCircle, Award, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
-import { allAssessments, AssessmentType } from "@/data/assessments";
+import { useAssessments } from "@/hooks/use-assessments"; // Import useAssessments
 import { useUserProgress } from "@/hooks/use-user-progress";
 
 const Assessment = () => {
@@ -16,6 +16,7 @@ const Assessment = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { updateProgress, completedAssessmentIds } = useUserProgress();
+  const { assessments } = useAssessments(); // Usar o hook useAssessments
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
@@ -23,9 +24,9 @@ const Assessment = () => {
   const [score, setScore] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
   const [isAssessmentCompleted, setIsAssessmentCompleted] = useState(false);
-  const [userEmail, setUserEmail] = useState(""); // Estado para o e-mail do usuário
+  const [userEmail, setUserEmail] = useState("");
 
-  const assessment: AssessmentType | undefined = allAssessments.find(
+  const assessment = assessments.find(
     (a) => a.id === Number(id) && a.type === "general"
   );
 
@@ -42,12 +43,11 @@ const Assessment = () => {
     }));
   };
 
-  // Função para lidar com a seleção de respostas via teclado
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
     if (showResults || !assessment) return;
 
     const key = event.key;
-    const optionIndex = parseInt(key, 10) - 1; // '1' -> index 0, '2' -> index 1, etc.
+    const optionIndex = parseInt(key, 10) - 1;
 
     if (optionIndex >= 0 && optionIndex < assessment.questions[currentQuestionIndex].options.length) {
       handleAnswerSelect(assessment.questions[currentQuestionIndex].options[optionIndex]);
@@ -82,7 +82,7 @@ const Assessment = () => {
     let total = 0;
     Object.values(answers).forEach((answer, index) => {
       const questionOptions = assessment.questions[index].options;
-      const scoreValue = questionOptions.indexOf(answer) + 1; // Assuming 1-based scoring
+      const scoreValue = questionOptions.indexOf(answer) + 1;
       total += scoreValue;
     });
     const averageScore = total / assessment.questions.length;
@@ -136,8 +136,6 @@ const Assessment = () => {
       });
       return;
     }
-    // Aqui você integraria com um serviço de backend para enviar o e-mail.
-    // Por exemplo, usando uma API do Supabase Functions ou outro serviço de e-mail.
     toast({
       title: "E-mail de resultados",
       description: `Um e-mail com seus resultados foi 'enviado' para ${userEmail}. (Requer backend para envio real)`,

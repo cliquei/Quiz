@@ -4,20 +4,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Star, Target, Users, Award, Settings } from "lucide-react"; // Adicionado Settings icon
+import { Trophy, Star, Target, Users, Award, Settings } from "lucide-react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import AnimatedCard from "@/components/AnimatedCard";
 import { useToast } from "@/hooks/use-toast";
-import { allAssessments } from "@/data/assessments"; // Import allAssessments
+import { useAssessments } from "@/hooks/use-assessments"; // Import useAssessments
 import { useUserProgress } from "@/hooks/use-user-progress";
 
 const Index = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { xp, currentLevel, completedAssessmentIds, achievements, levels, resetProgress } = useUserProgress();
+  const { assessments } = useAssessments(); // Usar o hook useAssessments
 
-  // Use allAssessments do arquivo de dados, mas marque como concluídas com base no estado persistente
-  const assessmentsWithCompletion = allAssessments.map(assessment => ({
+  // Use assessments do hook, mas marque como concluídas com base no estado persistente
+  const assessmentsWithCompletion = assessments.map(assessment => ({
     ...assessment,
     completed: completedAssessmentIds.includes(assessment.id)
   }));

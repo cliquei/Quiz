@@ -5,16 +5,17 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, CheckCircle, User, MapPin, Award, Mail } from "lucide-react"; // Importar Mail icon
+import { ArrowLeft, CheckCircle, User, MapPin, Award, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
-import { allAssessments } from "@/data/assessments"; // Import allAssessments for dental suggestions
+import { useAssessments } from "@/hooks/use-assessments"; // Import useAssessments
 import { useUserProgress } from "@/hooks/use-user-progress";
 
 const DentalAssessment = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { updateProgress, completedAssessmentIds } = useUserProgress();
+  const { assessments } = useAssessments(); // Usar o hook useAssessments
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
@@ -23,10 +24,10 @@ const DentalAssessment = () => {
   const [score, setScore] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
   const [isAssessmentCompleted, setIsAssessmentCompleted] = useState(false);
-  const [userEmail, setUserEmail] = useState(""); // Estado para o e-mail do usuário
+  const [userEmail, setUserEmail] = useState("");
 
-  const dentalAssessmentId = 5; // ID da avaliação odontológica
-  const dentalAssessmentData = allAssessments.find(a => a.id === dentalAssessmentId);
+  const dentalAssessmentId = 5;
+  const dentalAssessmentData = assessments.find(a => a.id === dentalAssessmentId);
 
   useEffect(() => {
     setIsAssessmentCompleted(completedAssessmentIds.includes(dentalAssessmentId));
@@ -104,12 +105,11 @@ const DentalAssessment = () => {
     }));
   };
 
-  // Função para lidar com a seleção de respostas via teclado
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
-    if (showResults || !userData.nickname || !userData.city) return; // Não funciona antes de preencher dados ou nos resultados
+    if (showResults || !userData.nickname || !userData.city) return;
 
     const key = event.key;
-    const optionIndex = parseInt(key, 10) - 1; // '1' -> index 0, '2' -> index 1, etc.
+    const optionIndex = parseInt(key, 10) - 1;
 
     if (optionIndex >= 0 && optionIndex < assessmentData.options.length) {
       handleAnswerSelect(assessmentData.options[optionIndex]);
@@ -202,8 +202,6 @@ const DentalAssessment = () => {
       });
       return;
     }
-    // Aqui você integraria com um serviço de backend para enviar o e-mail.
-    // Por exemplo, usando uma API do Supabase Functions ou outro serviço de e-mail.
     toast({
       title: "E-mail de resultados",
       description: `Um e-mail com seus resultados foi 'enviado' para ${userEmail}. (Requer backend para envio real)`,
@@ -211,7 +209,7 @@ const DentalAssessment = () => {
   };
 
   const currentLevelResult = getLevel(score);
-  const dentalAssessmentSuggestions = allAssessments.find(a => a.type === "dental")?.suggestions;
+  const dentalAssessmentSuggestions = assessments.find(a => a.type === "dental")?.suggestions; // Usar assessments do hook
   const suggestions = dentalAssessmentSuggestions ? dentalAssessmentSuggestions(score) : [];
 
 

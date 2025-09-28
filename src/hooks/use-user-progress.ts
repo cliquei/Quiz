@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { allAssessments, AssessmentType } from "@/data/assessments";
+import { allAssessments as initialAssessments, AssessmentType } from "@/data/initialAssessments"; // Importar do novo arquivo
 
 interface UserProgress {
   xp: number;
