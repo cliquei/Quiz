@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,13 +18,23 @@ const leaderboard = [
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const [bccEmail, setBccEmail] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("adminBccEmail") || "";
+    }
+    return "";
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("adminBccEmail", bccEmail);
+    }
+  }, [bccEmail]);
 
   const handleSaveBccEmail = () => {
-    // This would typically save the BCC email to a backend database.
-    // For now, we'll just show a toast.
     toast({
       title: "Configuração de E-mail",
-      description: "O e-mail BCC foi 'salvo' (requer backend para persistência e envio real).",
+      description: `E-mail BCC '${bccEmail}' salvo localmente. Para envio real e persistência em múltiplos dispositivos, um backend é necessário.`,
     });
   };
 
@@ -104,10 +115,12 @@ const AdminDashboard = () => {
                   id="bcc-email"
                   type="email"
                   placeholder="admin@exemplo.com"
+                  value={bccEmail}
+                  onChange={(e) => setBccEmail(e.target.value)}
                   className="mt-1"
                 />
                 <p className="text-sm text-gray-500 mt-2">
-                  Para que o envio de e-mails funcione e esta configuração seja persistente,
+                  Para que o envio de e-mails funcione e esta configuração seja persistente em múltiplos dispositivos,
                   você precisará de uma integração de backend (ex: Supabase, SendGrid).
                 </p>
               </div>
